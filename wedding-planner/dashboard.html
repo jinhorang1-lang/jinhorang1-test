@@ -166,9 +166,32 @@
     </div>
   </section>
 
+  <section class="wh-card" id="indoor-low">
+    <h2>서울 실내 저비용 예식장 (대관료 무료~200만원 미만)</h2>
+    <p class="note">공공시설이라 대관료가 거의 들지 않고, 비용은 사실상 식대와 장식비뿐입니다. 대신 날짜가 적고 일찍 마감되며, 주차가 일반 웨딩홀보다 약합니다. 2027년 일정은 공지 확인이 필요합니다.</p>
+    <div class="wh-scroll">
+      <table id="indoor-table" data-source="indoor" data-row-key="name">
+        <thead><tr>
+          <th data-field="name">장소</th>
+          <th data-field="area">지역</th>
+          <th data-field="location">교통</th>
+          <th data-field="rental">대관료</th>
+          <th data-field="capacity">수용</th>
+          <th data-field="schedule">예식 가능일</th>
+          <th data-field="meal">식사</th>
+          <th data-field="parking">주차</th>
+          <th data-field="eligibility">이용 자격</th>
+          <th data-field="contact">문의</th>
+          <th data-field="note">플래너 메모</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="wh-card" id="small-wedding">
-    <h2>스몰웨딩 대안: 서울시 공공예식장</h2>
-    <p class="note">대관료가 무료라 비용을 가장 많이 줄일 수 있습니다. 대신 야외라 날씨 영향을 받고, 식사는 케이터링으로 따로 계약합니다. 실내 스몰웨딩은 위 표의 부천고려호텔(보증 100명)과 더베뉴지 마리아칼라스홀(보증 150명)을 보세요.</p>
+    <h2>야외 스몰웨딩 대안: 서울시 공공예식장</h2>
+    <p class="note">대관료가 무료라 비용을 가장 많이 줄일 수 있습니다. 대신 야외라 날씨 영향을 받고, 식사는 케이터링으로 따로 계약합니다. 실내 스몰웨딩은 바로 위 공공 실내 예식장이나 부천고려호텔(보증 100명), 더베뉴지 마리아칼라스홀(보증 150명)을 보세요.</p>
     <div class="wh-scroll">
       <table id="small-table" data-source="small" data-row-key="name">
         <thead><tr>
@@ -444,7 +467,7 @@ dash.calc('costs', {
         el.textContent = f === 'min_meal' ? won(v.min_meal) : v[f] + '곳';
       });
       take.classList.remove('dash-skeleton');
-      take.textContent = `정가로 7만원 이하인 홀은 ${v.fit}곳, 할인·제휴가로 7만원 이하가 되는 홀이 ${v.edge}곳입니다. 아래에서 보증인원을 바꿔 보면 총비용 순위가 달라집니다. 스몰웨딩이면 부천고려호텔(보증 100명, 대관료 200만원)과 공공예식장이 가장 저렴합니다.`;
+      take.textContent = `정가로 7만원 이하인 홀은 ${v.fit}곳, 할인·제휴가로 7만원 이하가 되는 홀이 ${v.edge}곳입니다. 아래에서 보증인원을 바꿔 보면 총비용 순위가 달라집니다. 스몰웨딩이면 대관료 무료인 피움서울(대방역)과 부천고려호텔(보증 100명)이 가장 저렴합니다.`;
     } else {
       tiles.forEach(el => { el.textContent = '—'; if (s.status === 'loading') el.classList.add('dash-skeleton'); else el.classList.remove('dash-skeleton'); });
       take.textContent = '—';
@@ -456,6 +479,7 @@ dash.calc('costs', {
       if (c !== 'status') return false;
       const sp = document.createElement('span'); sp.className = 'pill ' + statusClass(row.status); sp.textContent = row.status; td.appendChild(sp); return true;
     });
+    drawSimple('indoor', '#indoor-table', ['name', 'area', 'location', 'rental', 'capacity', 'schedule', 'meal', 'parking', 'eligibility', 'contact', 'note']);
     drawSimple('small', '#small-table', ['name', 'area', 'capacity', 'rental', 'schedule', 'meal', 'parking', 'contact', 'note']);
     drawSimple('excluded', '#ex-table', ['name', 'area', 'meal_text', 'parking', 'reason']);
   });
