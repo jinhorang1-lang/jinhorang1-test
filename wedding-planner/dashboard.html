@@ -47,14 +47,14 @@
       <span class="wh-chip">인천 ↔ 영등포 중간 (강서·마포·구로·영등포·부천)</span>
       <span class="wh-chip">보증 200명 내외</span>
       <span class="wh-chip">주차 3점 이상 / 5점</span>
-      <span class="wh-chip">식대 1인 7만원 미만</span>
+      <span class="wh-chip">식대 1인 7만원 이하</span>
       <span class="wh-chip">목표: 2027년 상반기</span>
     </div>
   </header>
 
   <section class="wh-tiles" id="summary">
-    <div class="wh-tile"><div class="lbl">예산 안에 드는 홀</div><div class="num dash-skeleton" data-source="summary" data-field="fit" data-row="0">—</div><div class="sub">식대 7만원 미만 확인</div></div>
-    <div class="wh-tile"><div class="lbl">협상하면 가능한 홀</div><div class="num dash-skeleton" data-source="summary" data-field="edge" data-row="0">—</div><div class="sub">할인·메뉴 조정 필요</div></div>
+    <div class="wh-tile"><div class="lbl">정가로 예산 안인 홀</div><div class="num dash-skeleton" data-source="summary" data-field="fit" data-row="0">—</div><div class="sub">식대 7만원 이하 확인</div></div>
+    <div class="wh-tile"><div class="lbl">할인·제휴가로 가능한 홀</div><div class="num dash-skeleton" data-source="summary" data-field="edge" data-row="0">—</div><div class="sub">적용 조건 확인 필요</div></div>
     <div class="wh-tile"><div class="lbl">가장 낮은 시작 식대</div><div class="num dash-skeleton" data-source="summary" data-field="min_meal" data-row="0">—</div><div class="sub">예산 적합 홀 기준, 1인</div></div>
     <div class="wh-tile"><div class="lbl">200명 식대 예상 (최저가)</div><div class="num dash-skeleton" data-source="summary" data-field="min_total" data-row="0">—</div><div class="sub">대관료·장식비 별도</div></div>
   </section>
@@ -65,7 +65,7 @@
     <div class="wh-tools" role="group" aria-label="예산 필터">
       <button type="button" id="f-all" data-f="all" aria-pressed="true">전체</button>
       <button type="button" id="f-ok" data-f="적합" aria-pressed="false">예산 적합</button>
-      <button type="button" id="f-edge" data-f="협상" aria-pressed="false">조건부·경계</button>
+      <button type="button" id="f-edge" data-f="협상" aria-pressed="false">할인 적용 시 가능</button>
     </div>
     <div class="wh-scroll">
       <table id="hall-table" data-source="halls" data-row-key="name">
@@ -90,7 +90,7 @@
   <div class="wh-grid2">
     <section class="wh-card" id="meal-chart-card">
       <h2>홀별 시작 식대</h2>
-      <p class="note">점선이 예산 상한 70,000원. 시작가 기준이라 실제 견적은 메뉴·시간대에 따라 오릅니다.</p>
+      <p class="note">점선이 예산 상한 70,000원. 할인·제휴가 포함 시작가 기준이라 실제 견적은 메뉴·시간대에 따라 오릅니다.</p>
       <div class="wh-chart" id="meal-chart" data-source="halls"></div>
     </section>
     <section class="wh-card wh-tips" id="call-script">
@@ -127,7 +127,7 @@
 
   <section class="wh-card" id="excluded">
     <h2>검토했지만 제외한 홀</h2>
-    <p class="note">위치와 주차는 좋지만 식대가 7만원을 넘습니다. 예산이 늘면 다시 볼 만합니다.</p>
+    <p class="note">위치와 주차는 좋지만 할인가를 적용해도 식대가 7만원을 넘습니다. 예산이 늘면 다시 볼 만합니다.</p>
     <div class="wh-scroll">
       <table id="ex-table" data-source="excluded" data-row-key="name">
         <thead><tr>
@@ -147,7 +147,7 @@
 dash.calc('summary', {
   inputs: ['halls'],
   title: '예산 요약',
-  description: '식대 7만원 미만 홀 수, 협상 필요 홀 수, 적합 홀 최저 시작 식대와 200명 기준 식대.',
+  description: '식대 7만원 이하 홀 수, 할인 적용 시 가능한 홀 수, 적합 홀 최저 시작 식대와 200명 기준 식대.',
   fn: (halls) => {
     const fit = halls.filter(h => h.budget === '적합');
     const min = Math.min(...fit.map(h => Number(h.meal_from)));
@@ -229,7 +229,7 @@ dash.calc('summary', {
       .attr('font-size', 12).attr('fill', 'var(--color-fg)').text(d => d.name);
     g.append('rect').attr('x', x(0)).attr('height', barH).attr('rx', 4)
       .attr('width', d => Math.max(2, x(Number(d.meal_from)) - x(0)))
-      .attr('fill', d => Number(d.meal_from) < 70000 ? dash.colors[0] : 'var(--cds-chart-muted)')
+      .attr('fill', d => Number(d.meal_from) <= 70000 ? dash.colors[0] : 'var(--cds-chart-muted)')
       .on('mousemove', (e, d) => {
         const [mx, my] = d3.pointer(e, box);
         tip.style('opacity', 1).html('');
@@ -270,7 +270,7 @@ dash.calc('summary', {
         el.textContent = f === 'min_meal' ? won(v.min_meal) : f === 'min_total' ? man(v.min_total) : v[f] + '곳';
       });
       take.classList.remove('dash-skeleton');
-      take.textContent = `조건에 맞는 홀은 ${v.fit}곳, 협상하면 가능한 홀이 ${v.edge}곳입니다. 1순위 3곳(웨딩시티 신도림·더채플앳웨스트·더컨벤션 영등포)부터 이번 주에 전화로 상반기 잔여 날짜를 확인하고 투어를 잡으세요.`;
+      take.textContent = `정가로 7만원 이하인 홀은 ${v.fit}곳, 할인·제휴가로 7만원 이하가 되는 홀이 ${v.edge}곳입니다. 상위 3곳(웨딩시티 신도림·더베뉴지서울·더채플앳웨스트)부터 이번 주에 전화로 상반기 잔여 날짜를 확인하고 투어를 잡으세요.`;
     } else {
       tiles.forEach(el => { el.textContent = '—'; if (s.status === 'loading') el.classList.add('dash-skeleton'); else el.classList.remove('dash-skeleton'); });
       take.textContent = '—';
