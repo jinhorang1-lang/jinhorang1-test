@@ -32,6 +32,16 @@
 .wh-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; }
 .wh-tip .t { color: var(--cds-text-secondary); }
 .wh-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+.wh-guests { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm) var(--cds-gap-md); margin-bottom: var(--cds-gap-md); }
+.wh-guests label { font-size: var(--cds-font-size-body); }
+.wh-guests label b { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; }
+.wh-guests input[type=range] { flex: 1 1 12rem; min-width: 0; accent-color: var(--color-fg); }
+.wh-guests .wh-tools { margin: 0; }
+.wh-legend { display: flex; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: var(--cds-gap-xs); }
+.wh-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; background: var(--sw); }
+.wh td.num { text-align: right; white-space: nowrap; }
+.wh th.num { text-align: right; }
+.wh td.total { font-weight: var(--cds-font-weight-medium); }
 .wh-tips ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: var(--cds-font-size-caption); }
 [data-dash-source-state=empty] { color: transparent; }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
@@ -56,7 +66,37 @@
     <div class="wh-tile"><div class="lbl">정가로 예산 안인 홀</div><div class="num dash-skeleton" data-source="summary" data-field="fit" data-row="0">—</div><div class="sub">식대 7만원 이하 확인</div></div>
     <div class="wh-tile"><div class="lbl">할인·제휴가로 가능한 홀</div><div class="num dash-skeleton" data-source="summary" data-field="edge" data-row="0">—</div><div class="sub">적용 조건 확인 필요</div></div>
     <div class="wh-tile"><div class="lbl">가장 낮은 시작 식대</div><div class="num dash-skeleton" data-source="summary" data-field="min_meal" data-row="0">—</div><div class="sub">예산 적합 홀 기준, 1인</div></div>
-    <div class="wh-tile"><div class="lbl">200명 식대 예상 (최저가)</div><div class="num dash-skeleton" data-source="summary" data-field="min_total" data-row="0">—</div><div class="sub">대관료·장식비 별도</div></div>
+    <div class="wh-tile"><div class="lbl" id="cheap-lbl">선택 인원 기준 최저 총비용</div><div class="num dash-skeleton" id="cheap-total" data-source="costs" data-field="total">—</div><div class="sub" id="cheap-name">대관료 + 식대</div></div>
+  </section>
+
+  <section class="wh-card" id="budget-calc">
+    <h2>보증인원별 예상 비용</h2>
+    <p class="note">대관료 + 식대 × 청구 인원, 싼 순. 고른 인원이 홀의 최소 보증보다 적으면 최소 보증 인원만큼 식대가 청구됩니다. 꽃장식 추가·연출료·VAT 차이는 홀마다 달라 빠져 있고, 대관료를 못 찾은 홀(이룸)은 제외했습니다.</p>
+    <div class="wh-guests">
+      <label for="guests-range">보증인원 <b id="guests-val">200</b>명</label>
+      <input type="range" id="guests-range" min="50" max="300" step="10" value="200" aria-label="보증인원">
+      <div class="wh-tools" role="group" aria-label="보증인원 빠른 선택">
+        <button type="button" id="g-100" data-g="100" aria-pressed="false">100명</button>
+        <button type="button" id="g-150" data-g="150" aria-pressed="false">150명</button>
+        <button type="button" id="g-200" data-g="200" aria-pressed="true">200명</button>
+        <button type="button" id="g-250" data-g="250" aria-pressed="false">250명</button>
+      </div>
+    </div>
+    <div class="wh-legend" aria-hidden="true"><span id="lg-rent">대관료</span><span id="lg-meal">식대 합계</span></div>
+    <div class="wh-chart" id="cost-chart" data-source="costs"></div>
+    <div class="wh-scroll">
+      <table id="cost-table" data-source="costs" data-row-key="name,guests">
+        <thead><tr>
+          <th data-field="name">웨딩홀</th>
+          <th data-field="billed" class="num">청구 인원</th>
+          <th data-field="rental" class="num">대관료</th>
+          <th data-field="meal_total" class="num">식대 합계</th>
+          <th data-field="total" class="num">총 예상</th>
+          <th data-field="flag">보증 조건</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </section>
 
   <section class="wh-card" id="candidates">
@@ -74,6 +114,7 @@
           <th data-field="location">위치</th>
           <th data-field="phone">문의 연락처</th>
           <th data-field="meal_text">1인 식대</th>
+          <th data-field="rental_text">대관료</th>
           <th data-field="budget">예산</th>
           <th data-field="parking_score">주차 점수</th>
           <th data-field="parking">주차</th>
@@ -125,6 +166,27 @@
     </div>
   </section>
 
+  <section class="wh-card" id="small-wedding">
+    <h2>스몰웨딩 대안: 서울시 공공예식장</h2>
+    <p class="note">대관료가 무료라 비용을 가장 많이 줄일 수 있습니다. 대신 야외라 날씨 영향을 받고, 식사는 케이터링으로 따로 계약합니다. 실내 스몰웨딩은 위 표의 부천고려호텔(보증 100명)과 더베뉴지 마리아칼라스홀(보증 150명)을 보세요.</p>
+    <div class="wh-scroll">
+      <table id="small-table" data-source="small" data-row-key="name">
+        <thead><tr>
+          <th data-field="name">장소</th>
+          <th data-field="area">지역</th>
+          <th data-field="capacity">수용</th>
+          <th data-field="rental">대관료</th>
+          <th data-field="schedule">예식 가능일</th>
+          <th data-field="meal">식사</th>
+          <th data-field="parking">주차</th>
+          <th data-field="contact">문의</th>
+          <th data-field="note">메모</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="wh-card" id="excluded">
     <h2>검토했지만 제외한 홀</h2>
     <p class="note">위치와 주차는 좋지만 할인가를 적용해도 식대가 7만원을 넘습니다. 예산이 늘면 다시 볼 만합니다.</p>
@@ -151,7 +213,26 @@ dash.calc('summary', {
   fn: (halls) => {
     const fit = halls.filter(h => h.budget === '적합');
     const min = Math.min(...fit.map(h => Number(h.meal_from)));
-    return [{ fit: fit.length, edge: halls.length - fit.length, min_meal: min, min_total: min * 200 }];
+    return [{ fit: fit.length, edge: halls.length - fit.length, min_meal: min }];
+  }
+});
+dash.calc('costs', {
+  inputs: ['halls'],
+  title: '보증인원별 예상 비용',
+  description: '50~300명(10명 단위)마다 청구 인원 = max(선택 인원, 최소 보증), 총액 = 대관료 + 식대 × 청구 인원. 대관료를 모르는 홀은 빠짐.',
+  fn: (halls) => {
+    const rows = [];
+    for (let g = 50; g <= 300; g += 10) {
+      halls.forEach(h => {
+        if (h.rental_fee == null) return;
+        const min = h.guarantee_min == null ? null : Number(h.guarantee_min);
+        const billed = min == null ? g : Math.max(g, min);
+        const meal = Number(h.meal_from) * billed;
+        const flag = min == null ? '최소 보증 확인 필요' : (g < min ? '최소 보증 ' + min + '명 적용' : '선택 인원 그대로');
+        rows.push({ name: h.name, guests: g, billed, rental: Number(h.rental_fee), meal_total: meal, total: Number(h.rental_fee) + meal, flag });
+      });
+    }
+    return rows;
   }
 });
 </script>
@@ -164,11 +245,103 @@ dash.calc('summary', {
   const pillClass = (b) => b === '적합' ? 'ok' : (b === '조건부' ? 'warn' : 'bad');
   const statusClass = (s) => s === '지금 할 일' ? 'warn' : (s === '완료' ? 'ok' : '');
 
-  document.querySelectorAll('.wh-tools button').forEach(btn => btn.addEventListener('click', () => {
+  const filterBtns = document.querySelectorAll('#candidates .wh-tools button');
+  filterBtns.forEach(btn => btn.addEventListener('click', () => {
     filter = btn.dataset.f;
-    document.querySelectorAll('.wh-tools button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    filterBtns.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
     drawHalls();
   }));
+
+  const range = document.getElementById('guests-range');
+  const guests = () => Number(dash.params().guests ?? 200);
+  range.addEventListener('input', () => dash.setParams({ guests: Number(range.value) }));
+  document.querySelectorAll('#budget-calc .wh-tools button').forEach(btn => btn.addEventListener('click', () => dash.setParams({ guests: Number(btn.dataset.g) })));
+  document.getElementById('lg-rent').style.setProperty('--sw', dash.colors[1]);
+  document.getElementById('lg-meal').style.setProperty('--sw', dash.colors[0]);
+  const enc = (v) => encodeURIComponent(v);
+
+  function costRows() {
+    const r = dash.data('costs');
+    if (r.status !== 'ok') return null;
+    const g = guests();
+    return r.data.filter(d => d.guests === g).sort((a, b) => a.total - b.total);
+  }
+
+  function drawCosts() {
+    const g = guests();
+    document.getElementById('guests-val').textContent = g;
+    if (range !== document.activeElement) range.value = g;
+    document.querySelectorAll('#budget-calc .wh-tools button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.g) === g)));
+    document.getElementById('cheap-lbl').textContent = g + '명 기준 최저 총비용';
+    const rows = costRows();
+    const tile = document.getElementById('cheap-total');
+    const tbody = document.querySelector('#cost-table tbody');
+    const box = document.getElementById('cost-chart');
+    tbody.innerHTML = '';
+    box.innerHTML = '';
+    if (!rows) {
+      const st = dash.data('costs').status;
+      tile.textContent = '—';
+      tile.classList.toggle('dash-skeleton', st === 'loading');
+      box.classList.toggle('dash-skeleton', st === 'loading');
+      if (st === 'error') fail(box);
+      return;
+    }
+    tile.classList.remove('dash-skeleton');
+    box.classList.remove('dash-skeleton');
+    if (rows.length) {
+      tile.dataset.where = 'name=' + enc(rows[0].name) + '&guests=' + g;
+      tile.textContent = man(rows[0].total);
+      document.getElementById('cheap-name').textContent = rows[0].name + ' · ' + rows[0].flag;
+    }
+    rows.forEach(d => {
+      const tr = tbody.insertRow();
+      tr.dataset.key = enc(d.name) + ',' + g;
+      const c = (t, cls) => { const td = tr.insertCell(); td.textContent = t; if (cls) td.className = cls; };
+      c(d.name, 'name');
+      c(d.billed + '명', 'num');
+      c(man(d.rental), 'num');
+      c(man(d.meal_total), 'num');
+      c(man(d.total), 'num total');
+      c(d.flag);
+    });
+
+    const W = Math.max(280, box.clientWidth), barH = 20, gap = 10, top = 6, bottom = 26;
+    const H = top + rows.length * (barH + gap) + bottom;
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const probe = svg.append('text').attr('font-size', 12);
+    let left = 0, valW = 0;
+    rows.forEach(d => { probe.text(d.name); left = Math.max(left, probe.node().getComputedTextLength()); probe.text(man(d.total)); valW = Math.max(valW, probe.node().getComputedTextLength()); });
+    probe.remove();
+    left += 12;
+    const maxT = d3.max(rows, d => d.total) || 1;
+    const x = d3.scaleLinear([0, maxT], [left, W - valW - 12]).nice();
+    const ticks = x.ticks(Math.max(2, Math.floor((W - left) / 90)));
+    svg.append('g').selectAll('line').data(ticks).join('line')
+      .attr('x1', d => x(d)).attr('x2', d => x(d)).attr('y1', top).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(ticks).join('text')
+      .attr('x', d => x(d)).attr('y', H - 8).attr('text-anchor', 'middle').attr('font-size', 11)
+      .attr('fill', 'var(--color-fg-muted)').text(d => d === 0 ? '0' : d3.format(',')(d / 10000) + '만');
+    const tip = d3.select(box).append('div').attr('class', 'wh-tip').style('opacity', 0);
+    const gr = svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (d, i) => `translate(0,${top + i * (barH + gap)})`);
+    gr.append('text').attr('x', left - 10).attr('y', barH / 2).attr('dy', '0.35em').attr('text-anchor', 'end')
+      .attr('font-size', 12).attr('fill', 'var(--color-fg)').text(d => d.name);
+    gr.append('rect').attr('x', x(0)).attr('height', barH).attr('width', d => Math.max(1, x(d.rental) - x(0))).attr('fill', dash.colors[1]);
+    gr.append('rect').attr('x', d => x(d.rental)).attr('height', barH).attr('width', d => Math.max(1, x(d.total) - x(d.rental))).attr('fill', dash.colors[0]);
+    gr.append('text').attr('x', d => x(d.total) + 6).attr('y', barH / 2).attr('dy', '0.35em').attr('font-size', 12)
+      .attr('fill', 'var(--color-fg-muted)').text(d => man(d.total));
+    gr.append('rect').attr('x', 0).attr('width', W).attr('height', barH + gap).attr('y', -gap / 2).attr('fill', 'transparent')
+      .on('mousemove', (e, d) => {
+        const [mx, my] = d3.pointer(e, box);
+        tip.style('opacity', 1).html('');
+        tip.append('div').attr('class', 't').text(d.name + ' · ' + d.billed + '명 청구');
+        tip.append('div').text('대관료 ' + man(d.rental) + ' + 식대 ' + man(d.meal_total));
+        tip.append('div').text('총 ' + man(d.total));
+        const tw = tip.node().offsetWidth;
+        tip.style('left', Math.max(0, Math.min(mx + 12, box.clientWidth - tw)) + 'px').style('top', (my - 64) + 'px');
+      })
+      .on('mouseleave', () => tip.style('opacity', 0));
+  }
 
   const fail = (el) => { el.innerHTML = ''; const d = document.createElement('div'); d.className = 'wh-fail'; d.textContent = 'Failed to load'; el.appendChild(d); };
 
@@ -186,6 +359,7 @@ dash.calc('summary', {
       const loc = td(); loc.textContent = h.location;
       const ph = td(); const p = document.createElement('span'); p.className = 'phone'; p.textContent = h.phone; ph.appendChild(p);
       td().textContent = h.meal_text;
+      td().textContent = h.rental_text;
       const bd = td(); const pill = document.createElement('span'); pill.className = 'pill ' + pillClass(h.budget); pill.textContent = h.budget; bd.appendChild(pill);
       const ps = td(); ps.style.whiteSpace = 'nowrap'; ps.append(String(h.parking_score));
       const m = document.createElement('span'); m.className = 'meter'; m.setAttribute('aria-hidden', 'true');
@@ -267,20 +441,22 @@ dash.calc('summary', {
       tiles.forEach(el => {
         el.classList.remove('dash-skeleton');
         const f = el.dataset.field;
-        el.textContent = f === 'min_meal' ? won(v.min_meal) : f === 'min_total' ? man(v.min_total) : v[f] + '곳';
+        el.textContent = f === 'min_meal' ? won(v.min_meal) : v[f] + '곳';
       });
       take.classList.remove('dash-skeleton');
-      take.textContent = `정가로 7만원 이하인 홀은 ${v.fit}곳, 할인·제휴가로 7만원 이하가 되는 홀이 ${v.edge}곳입니다. 상위 3곳(웨딩시티 신도림·더베뉴지서울·더채플앳웨스트)부터 이번 주에 전화로 상반기 잔여 날짜를 확인하고 투어를 잡으세요.`;
+      take.textContent = `정가로 7만원 이하인 홀은 ${v.fit}곳, 할인·제휴가로 7만원 이하가 되는 홀이 ${v.edge}곳입니다. 아래에서 보증인원을 바꿔 보면 총비용 순위가 달라집니다. 스몰웨딩이면 부천고려호텔(보증 100명, 대관료 200만원)과 공공예식장이 가장 저렴합니다.`;
     } else {
       tiles.forEach(el => { el.textContent = '—'; if (s.status === 'loading') el.classList.add('dash-skeleton'); else el.classList.remove('dash-skeleton'); });
       take.textContent = '—';
     }
+    drawCosts();
     drawHalls();
     drawChart();
     drawSimple('checklist', '#check-table', ['when', 'task', 'owner', 'status'], (c, row, td) => {
       if (c !== 'status') return false;
       const sp = document.createElement('span'); sp.className = 'pill ' + statusClass(row.status); sp.textContent = row.status; td.appendChild(sp); return true;
     });
+    drawSimple('small', '#small-table', ['name', 'area', 'capacity', 'rental', 'schedule', 'meal', 'parking', 'contact', 'note']);
     drawSimple('excluded', '#ex-table', ['name', 'area', 'meal_text', 'parking', 'reason']);
   });
 })();
