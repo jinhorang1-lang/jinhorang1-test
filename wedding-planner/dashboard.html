@@ -1,0 +1,287 @@
+<style>
+.wh { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+.wh-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+.wh-head p { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); max-width: 70ch; }
+.wh-criteria { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); margin-top: var(--cds-gap-sm); }
+.wh-chip { font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); border-radius: 999px; padding: 2px 10px; color: var(--color-fg-muted); }
+.wh-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+.wh-tile, .wh-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+.wh-tile .lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
+.wh-tile .num { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; margin-top: var(--cds-gap-xs); }
+.wh-tile .sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: 2px; }
+.wh-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+.wh-card .note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 4px 0 var(--cds-gap-md); }
+.wh-tools { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); margin-bottom: var(--cds-gap-sm); }
+.wh-tools button { font: inherit; font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.wh-tools button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.wh-tools button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.wh-scroll { overflow-x: auto; }
+.wh table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.wh th { text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+.wh td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.wh tr:last-child td { border-bottom: 0; }
+.wh td.name { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); white-space: nowrap; }
+.wh .muted { color: var(--color-fg-muted); display: block; margin-top: 2px; }
+.wh .phone { white-space: nowrap; font-weight: var(--cds-font-weight-medium); user-select: all; }
+.pill { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: var(--cds-font-size-caption); border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--color-ok); } .pill.warn { color: var(--color-warn); } .pill.bad { color: var(--color-bad); }
+.meter { display: inline-flex; gap: 2px; margin-left: 6px; vertical-align: middle; }
+.meter i { width: 6px; height: 10px; border-radius: 2px; background: var(--cds-chart-grid); }
+.meter i.on { background: var(--color-ok); }
+.wh-chart { position: relative; min-height: 300px; }
+.wh-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; }
+.wh-tip .t { color: var(--cds-text-secondary); }
+.wh-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+.wh-tips ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: var(--cds-font-size-caption); }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+.wh-fail { display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: 120px; }
+.wh-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+</style>
+
+<div class="wh">
+  <header class="wh-head" id="top">
+    <h1>우리 웨딩홀 후보</h1>
+    <p id="wh-takeaway" class="dash-skeleton">—</p>
+    <div class="wh-criteria">
+      <span class="wh-chip">인천 ↔ 영등포 중간 (강서·마포·구로·영등포·부천)</span>
+      <span class="wh-chip">보증 200명 내외</span>
+      <span class="wh-chip">주차 3점 이상 / 5점</span>
+      <span class="wh-chip">식대 1인 7만원 미만</span>
+      <span class="wh-chip">목표: 2027년 상반기</span>
+    </div>
+  </header>
+
+  <section class="wh-tiles" id="summary">
+    <div class="wh-tile"><div class="lbl">예산 안에 드는 홀</div><div class="num dash-skeleton" data-source="summary" data-field="fit" data-row="0">—</div><div class="sub">식대 7만원 미만 확인</div></div>
+    <div class="wh-tile"><div class="lbl">협상하면 가능한 홀</div><div class="num dash-skeleton" data-source="summary" data-field="edge" data-row="0">—</div><div class="sub">할인·메뉴 조정 필요</div></div>
+    <div class="wh-tile"><div class="lbl">가장 낮은 시작 식대</div><div class="num dash-skeleton" data-source="summary" data-field="min_meal" data-row="0">—</div><div class="sub">예산 적합 홀 기준, 1인</div></div>
+    <div class="wh-tile"><div class="lbl">200명 식대 예상 (최저가)</div><div class="num dash-skeleton" data-source="summary" data-field="min_total" data-row="0">—</div><div class="sub">대관료·장식비 별도</div></div>
+  </section>
+
+  <section class="wh-card" id="candidates">
+    <h2>예약 후보 웨딩홀</h2>
+    <p class="note">추천 순. 2027년 상반기 잔여 날짜는 홀마다 실시간으로 바뀌어 온라인으로 확인되지 않습니다. 전화 상담 때 가장 먼저 물어보세요.</p>
+    <div class="wh-tools" role="group" aria-label="예산 필터">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">전체</button>
+      <button type="button" id="f-ok" data-f="적합" aria-pressed="false">예산 적합</button>
+      <button type="button" id="f-edge" data-f="협상" aria-pressed="false">조건부·경계</button>
+    </div>
+    <div class="wh-scroll">
+      <table id="hall-table" data-source="halls" data-row-key="name">
+        <thead><tr>
+          <th data-field="name">웨딩홀</th>
+          <th data-field="location">위치</th>
+          <th data-field="phone">문의 연락처</th>
+          <th data-field="meal_text">1인 식대</th>
+          <th data-field="budget">예산</th>
+          <th data-field="parking_score">주차 점수</th>
+          <th data-field="parking">주차</th>
+          <th data-field="guarantee">보증인원</th>
+          <th data-field="h1_status">상반기 예약</th>
+          <th data-field="consult">상담 예약</th>
+          <th data-field="note">플래너 메모</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="wh-grid2">
+    <section class="wh-card" id="meal-chart-card">
+      <h2>홀별 시작 식대</h2>
+      <p class="note">점선이 예산 상한 70,000원. 시작가 기준이라 실제 견적은 메뉴·시간대에 따라 오릅니다.</p>
+      <div class="wh-chart" id="meal-chart" data-source="halls"></div>
+    </section>
+    <section class="wh-card wh-tips" id="call-script">
+      <h2>상담 전화할 때 물어볼 것</h2>
+      <p class="note">10년 차 플래너가 계약 전 꼭 확인시키는 항목입니다.</p>
+      <ol>
+        <li>2027년 1~6월 중 남은 토·일 시간대 (점심 11~13시가 가장 먼저 마감)</li>
+        <li>200명 보증 가능 여부, 최종 인원 통보 시한과 감축 허용 범위</li>
+        <li>식대에 주류·음료·VAT·봉사료 포함 여부, 어린이·업체 식대</li>
+        <li>대관료·연출료·꽃장식 포함 여부와 필수 패키지(스드메 지정 여부)</li>
+        <li>하객 무료 주차 시간, 혼주·신랑신부 차량 무료 대수</li>
+        <li>계약금, 위약금 규정 (날짜 변경·취소 시)</li>
+        <li>단독홀 여부, 예식 간격(분리예식 90분 이상 선호)</li>
+        <li>당일 계약 할인 · 비수기(1~3월) 할인 조건</li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="wh-card" id="checklist">
+    <h2>결혼 준비 체크리스트</h2>
+    <p class="note">2027년 상반기 예식 기준 역산 일정. 웨딩홀 계약이 모든 일정의 출발점이라 11월 안에 끝내는 게 목표입니다.</p>
+    <div class="wh-scroll">
+      <table id="check-table" data-source="checklist" data-row-key="task">
+        <thead><tr>
+          <th data-field="when">시기</th>
+          <th data-field="task">할 일</th>
+          <th data-field="owner">담당</th>
+          <th data-field="status">상태</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wh-card" id="excluded">
+    <h2>검토했지만 제외한 홀</h2>
+    <p class="note">위치와 주차는 좋지만 식대가 7만원을 넘습니다. 예산이 늘면 다시 볼 만합니다.</p>
+    <div class="wh-scroll">
+      <table id="ex-table" data-source="excluded" data-row-key="name">
+        <thead><tr>
+          <th data-field="name">웨딩홀</th>
+          <th data-field="area">지역</th>
+          <th data-field="meal_text">1인 식대</th>
+          <th data-field="parking">주차</th>
+          <th data-field="reason">제외 이유</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+dash.calc('summary', {
+  inputs: ['halls'],
+  title: '예산 요약',
+  description: '식대 7만원 미만 홀 수, 협상 필요 홀 수, 적합 홀 최저 시작 식대와 200명 기준 식대.',
+  fn: (halls) => {
+    const fit = halls.filter(h => h.budget === '적합');
+    const min = Math.min(...fit.map(h => Number(h.meal_from)));
+    return [{ fit: fit.length, edge: halls.length - fit.length, min_meal: min, min_total: min * 200 }];
+  }
+});
+</script>
+
+<script>
+(() => {
+  const won = (n) => d3.format(',')(n) + '원';
+  const man = (n) => d3.format(',')(Math.round(n / 10000)) + '만원';
+  let filter = 'all';
+  const pillClass = (b) => b === '적합' ? 'ok' : (b === '조건부' ? 'warn' : 'bad');
+  const statusClass = (s) => s === '지금 할 일' ? 'warn' : (s === '완료' ? 'ok' : '');
+
+  document.querySelectorAll('.wh-tools button').forEach(btn => btn.addEventListener('click', () => {
+    filter = btn.dataset.f;
+    document.querySelectorAll('.wh-tools button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    drawHalls();
+  }));
+
+  const fail = (el) => { el.innerHTML = ''; const d = document.createElement('div'); d.className = 'wh-fail'; d.textContent = 'Failed to load'; el.appendChild(d); };
+
+  function drawHalls() {
+    const r = dash.data('halls');
+    const tbody = document.querySelector('#hall-table tbody');
+    tbody.innerHTML = '';
+    if (r.status !== 'ok') return;
+    const rows = r.data.slice().sort((a, b) => Number(a.rank) - Number(b.rank))
+      .filter(h => filter === 'all' || (filter === '적합' ? h.budget === '적합' : h.budget !== '적합'));
+    rows.forEach(h => {
+      const tr = tbody.insertRow();
+      const td = (cls) => { const c = tr.insertCell(); if (cls) c.className = cls; return c; };
+      td('name').textContent = h.name;
+      const loc = td(); loc.textContent = h.location;
+      const ph = td(); const p = document.createElement('span'); p.className = 'phone'; p.textContent = h.phone; ph.appendChild(p);
+      td().textContent = h.meal_text;
+      const bd = td(); const pill = document.createElement('span'); pill.className = 'pill ' + pillClass(h.budget); pill.textContent = h.budget; bd.appendChild(pill);
+      const ps = td(); ps.style.whiteSpace = 'nowrap'; ps.append(String(h.parking_score));
+      const m = document.createElement('span'); m.className = 'meter'; m.setAttribute('aria-hidden', 'true');
+      for (let i = 1; i <= 5; i++) { const b = document.createElement('i'); if (i <= Number(h.parking_score)) b.className = 'on'; m.appendChild(b); }
+      ps.appendChild(m);
+      td().textContent = h.parking;
+      td().textContent = h.guarantee;
+      const hs = td(); const sp = document.createElement('span'); sp.className = 'pill warn'; sp.textContent = h.h1_status; hs.appendChild(sp);
+      td().textContent = h.consult;
+      td().textContent = h.note;
+    });
+  }
+
+  function drawChart() {
+    const box = document.getElementById('meal-chart');
+    const r = dash.data('halls');
+    box.innerHTML = '';
+    if (r.status === 'error') { box.classList.remove('dash-skeleton'); return fail(box); }
+    if (r.status !== 'ok') { box.classList.add('dash-skeleton'); return; }
+    box.classList.remove('dash-skeleton');
+    const rows = r.data.slice().sort((a, b) => Number(a.meal_from) - Number(b.meal_from));
+    const W = Math.max(280, box.clientWidth), barH = 22, gap = 12, top = 22, bottom = 26;
+    const H = top + rows.length * (barH + gap) + bottom;
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const probe = svg.append('text').attr('font-size', 12).style('font-family', 'var(--font-anthropic-sans)');
+    let left = 0, valW = 0;
+    rows.forEach(d => { probe.text(d.name); left = Math.max(left, probe.node().getComputedTextLength()); probe.text(won(d.meal_from)); valW = Math.max(valW, probe.node().getComputedTextLength()); });
+    probe.remove();
+    left += 12;
+    const x = d3.scaleLinear([0, 90000], [left, W - valW - 12]);
+    svg.append('g').selectAll('line').data([0, 30000, 60000, 90000]).join('line')
+      .attr('x1', d => x(d)).attr('x2', d => x(d)).attr('y1', top - 6).attr('y2', H - bottom)
+      .attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data([0, 30000, 60000, 90000]).join('text')
+      .attr('x', d => x(d)).attr('y', H - 8).attr('text-anchor', 'middle').attr('font-size', 11)
+      .attr('fill', 'var(--color-fg-muted)').text(d => d === 0 ? '0' : (d / 10000) + '만');
+    const tip = d3.select(box).append('div').attr('class', 'wh-tip').style('opacity', 0);
+    const g = svg.append('g').selectAll('g').data(rows).join('g')
+      .attr('transform', (d, i) => `translate(0,${top + i * (barH + gap)})`);
+    g.append('text').attr('x', left - 10).attr('y', barH / 2).attr('dy', '0.35em').attr('text-anchor', 'end')
+      .attr('font-size', 12).attr('fill', 'var(--color-fg)').text(d => d.name);
+    g.append('rect').attr('x', x(0)).attr('height', barH).attr('rx', 4)
+      .attr('width', d => Math.max(2, x(Number(d.meal_from)) - x(0)))
+      .attr('fill', d => Number(d.meal_from) < 70000 ? dash.colors[0] : 'var(--cds-chart-muted)')
+      .on('mousemove', (e, d) => {
+        const [mx, my] = d3.pointer(e, box);
+        tip.style('opacity', 1).html('');
+        tip.append('div').attr('class', 't').text(d.name);
+        tip.append('div').text(d.meal_text);
+        const tw = tip.node().offsetWidth;
+        tip.style('left', Math.min(mx + 12, box.clientWidth - tw) + 'px').style('top', (my - 40) + 'px');
+      })
+      .on('mouseleave', () => tip.style('opacity', 0));
+    g.append('text').attr('x', d => x(Number(d.meal_from)) + 6).attr('y', barH / 2).attr('dy', '0.35em')
+      .attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(d => won(d.meal_from));
+    svg.append('line').attr('x1', x(70000)).attr('x2', x(70000)).attr('y1', top - 10).attr('y2', H - bottom)
+      .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    svg.append('text').attr('x', x(70000)).attr('y', top - 12).attr('text-anchor', 'middle').attr('font-size', 11)
+      .attr('fill', 'var(--color-fg-muted)').text('예산 상한 7만원');
+  }
+
+  function drawSimple(id, tableSel, cols, decorate) {
+    const r = dash.data(id);
+    const tbody = document.querySelector(tableSel + ' tbody');
+    tbody.innerHTML = '';
+    if (r.status !== 'ok') return;
+    r.data.forEach(row => {
+      const tr = tbody.insertRow();
+      cols.forEach((c, i) => { const td = tr.insertCell(); if (decorate && decorate(c, row, td)) return; td.textContent = row[c]; if (i === 0) td.className = 'name'; });
+    });
+  }
+
+  dash.onData(() => {
+    const s = dash.data('summary');
+    const tiles = document.querySelectorAll('[data-source="summary"]');
+    const take = document.getElementById('wh-takeaway');
+    if (s.status === 'ok' && s.data.length) {
+      const v = s.data[0];
+      tiles.forEach(el => {
+        el.classList.remove('dash-skeleton');
+        const f = el.dataset.field;
+        el.textContent = f === 'min_meal' ? won(v.min_meal) : f === 'min_total' ? man(v.min_total) : v[f] + '곳';
+      });
+      take.classList.remove('dash-skeleton');
+      take.textContent = `조건에 맞는 홀은 ${v.fit}곳, 협상하면 가능한 홀이 ${v.edge}곳입니다. 1순위 3곳(웨딩시티 신도림·더채플앳웨스트·더컨벤션 영등포)부터 이번 주에 전화로 상반기 잔여 날짜를 확인하고 투어를 잡으세요.`;
+    } else {
+      tiles.forEach(el => { el.textContent = '—'; if (s.status === 'loading') el.classList.add('dash-skeleton'); else el.classList.remove('dash-skeleton'); });
+      take.textContent = '—';
+    }
+    drawHalls();
+    drawChart();
+    drawSimple('checklist', '#check-table', ['when', 'task', 'owner', 'status'], (c, row, td) => {
+      if (c !== 'status') return false;
+      const sp = document.createElement('span'); sp.className = 'pill ' + statusClass(row.status); sp.textContent = row.status; td.appendChild(sp); return true;
+    });
+    drawSimple('excluded', '#ex-table', ['name', 'area', 'meal_text', 'parking', 'reason']);
+  });
+})();
+</script>
