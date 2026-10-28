@@ -1,0 +1,289 @@
+<title>결혼준비 체크리스트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: 한 줄 진행 요약 → 필터 → 준비 단계별 섹션(접기 가능), 각 항목은 체크하면 줄이 그어지는 행 */
+:root {
+  --bg: #f4f5f7;
+  --paper: #ffffff;
+  --ink: #1d2638;
+  --muted: #5d6679;
+  --line: #dde1e8;
+  --accent: #a8475f;
+  --accent-soft: #f6e6ea;
+  --done: #8a92a3;
+  --font-display: "Gowun Batang", "Nanum Myeongjo", serif;
+  --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161f; --paper: #1a2030; --ink: #e7eaf1; --muted: #a0a8b9; --line: #2c3446;
+    --accent: #e48ba1; --accent-soft: #3a2430; --done: #6f7789; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161f; --paper: #1a2030; --ink: #e7eaf1; --muted: #a0a8b9; --line: #2c3446;
+  --accent: #e48ba1; --accent-soft: #3a2430; --done: #6f7789; color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+
+header { display: grid; gap: 10px; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; color: var(--accent); font-weight: 500; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 6vw, 38px); line-height: 1.25; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 60ch; }
+
+.summary { display: grid; gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+.summary-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.big { font-family: var(--font-display); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.big small { font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+.bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: inherit; transition: width .3s ease; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+
+.tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.chip-btn { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  border-radius: 99px; padding: 6px 14px; cursor: pointer; }
+.chip-btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip-btn:focus-visible, .sec-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.spacer { flex: 1; }
+.reset { color: var(--muted); }
+.confirm { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.confirm .danger { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+
+section.sec { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.sec-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: none; border: 0;
+  color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.sec-head h2 { font-family: var(--font-display); font-size: 19px; font-weight: 700; margin: 0; flex: 1; min-width: 0; }
+.sec-when { display: block; font-family: var(--font-body); font-size: 12px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+.sec-count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sec-count.complete { color: var(--accent); font-weight: 500; }
+.caret { width: 10px; height: 10px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .2s; flex: none; margin-top: -4px; }
+.sec[data-open="false"] .caret { transform: rotate(-45deg); margin-top: 0; }
+.sec[data-open="false"] ul { display: none; }
+
+ul { list-style: none; margin: 0; padding: 0 20px 8px; }
+li { border-top: 1px solid var(--line); }
+li label { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 13px 0; cursor: pointer; align-items: start; }
+li input { appearance: none; -webkit-appearance: none; margin: 2px 0 0; width: 20px; height: 20px; border: 1.5px solid var(--muted);
+  border-radius: 5px; display: grid; place-content: center; cursor: pointer; background: var(--paper); transition: background .15s, border-color .15s; }
+li input::after { content: ""; width: 10px; height: 5px; border-left: 2px solid var(--paper); border-bottom: 2px solid var(--paper);
+  transform: rotate(-45deg) scale(0); margin-top: -3px; transition: transform .15s; }
+li input:checked { background: var(--accent); border-color: var(--accent); }
+li input:checked::after { transform: rotate(-45deg) scale(1); }
+li input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.body { min-width: 0; display: grid; gap: 4px; }
+.task { text-decoration: line-through; text-decoration-color: transparent; text-decoration-thickness: 1.5px; transition: color .2s, text-decoration-color .2s; }
+.note { font-size: 13px; color: var(--muted); }
+.tag { justify-self: start; font-size: 11px; letter-spacing: .04em; border-radius: 99px; padding: 1px 8px; }
+.tag.tip { background: var(--accent-soft); color: var(--accent); }
+.tag.add { border: 1px solid var(--line); color: var(--muted); }
+li input:checked + .body .task { color: var(--done); text-decoration-color: var(--done); }
+li input:checked + .body .note { color: var(--done); }
+li.hidden { display: none; }
+
+footer { font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">WEDDING CHECKLIST</div>
+    <h1>결혼준비 체크리스트</h1>
+    <p class="lede">결혼 선배의 꿀팁 25가지를 실제로 할 일로 바꾸고, 빠지기 쉬운 준비 항목을 더해 단계별로 정리했어요. 끝낸 항목을 체크하면 줄이 그어집니다.</p>
+  </header>
+
+  <div class="summary" aria-live="polite">
+    <div class="summary-row">
+      <div class="big"><span id="pct">0%</span><small id="cnt">0 / 0 완료</small></div>
+      <div class="legend"><span><span class="tag tip">선배 팁</span> 이미지 속 꿀팁</span><span><span class="tag add">보완</span> 추가한 항목</span></div>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+
+  <div class="tools" id="tools">
+    <button class="chip-btn" id="f-all" data-filter="all" aria-pressed="true">전체</button>
+    <button class="chip-btn" id="f-todo" data-filter="todo" aria-pressed="false">남은 할 일</button>
+    <button class="chip-btn" id="f-tip" data-filter="tip" aria-pressed="false">선배 팁만</button>
+    <span class="spacer"></span>
+    <button class="chip-btn reset" id="reset">체크 초기화</button>
+  </div>
+
+  <main id="list" style="display:grid;gap:14px"></main>
+
+  <footer>체크 상태는 이 브라우저에 저장돼요. 다른 기기나 브라우저에서는 따로 체크해야 합니다.</footer>
+</div>
+
+<script>
+const SECTIONS = [
+  { id: "plan", title: "큰 방향 잡기", when: "예식 12~10개월 전", items: [
+    ["plan-1", "양가 상견례 · 총예산과 분담 비율 합의", "결혼식·신혼집·혼수·여행을 항목별로 나눠 상한선을 정해 두세요.", "add"],
+    ["plan-2", "희망 예식일 후보 3개 정하기", "토/일, 점심/오후 시간대까지 후보를 두면 홀 고르기가 쉬워요.", "add"],
+    ["plan-3", "신부가 하고 싶은 건 웬만하면 들어주기", "결혼식은 생애 한 번 하는 신부의 꿈. 큰 줄기만 함께 정하고 나머지는 따라가기.", "tip", 1],
+    ["plan-4", "규모가 조금 과해 보여도 예산 안이라면 너그럽게", "선배 말로는 '마지막 기회'. 단, 합의한 총예산은 넘기지 않기.", "tip", 2],
+    ["plan-5", "공동 예산표 · 할 일 공유 문서 만들기", "계약금·잔금 날짜, 담당자를 한곳에 모아 두면 다툼이 줄어요.", "add"],
+  ]},
+  { id: "hall", title: "웨딩홀", when: "예식 10~8개월 전", items: [
+    ["hall-1", "교통: 멀리서 오는 하객도 오기 편한 곳인지", "역에서 도보 거리, 셔틀 여부, 지방 하객 대절버스 동선 확인.", "tip", 6],
+    ["hall-2", "식사: 반드시 시식해 보고 맛있는 곳으로", "멀리서 오신 분들께 밥은 맛있게 대접해야 해요.", "tip", 7],
+    ["hall-3", "주차 대수와 무료 주차 시간 확인", "", "add"],
+    ["hall-4", "보증인원 · 계약금 · 위약 규정 · 인원 조정 시한 확인", "계약서에 적힌 날짜를 예산표에 옮겨 두세요.", "add"],
+    ["hall-5", "예식 간격(홀 회전), 신부대기실, 폐백실 확인", "", "add"],
+  ]},
+  { id: "sdm", title: "스드메 · 예복", when: "예식 9~4개월 전", items: [
+    ["sdm-1", "드레스는 A라인 · 신상 · 비즈 많은 것 위주로", "비즈가 많아야 버진로드 조명이 반사돼 예뻐 보이고, A라인이 가장 무난하게 잘 어울려요.", "tip", 14],
+    ["sdm-2", "일자형 드레스 · 대파 같은 큰 부케는 피하기", "괜히 특이하게 하면 비율이 무너져요. 그건 모델들이나 하는 것.", "tip", 16],
+    ["sdm-3", "턱시도는 나중에 일상복으로 입을 수 있는 형태로", "좋은 걸 장만해도 되지만 재활용 가능한 디자인으로.", "tip", 10],
+    ["sdm-4", "스드메 추가금 항목 미리 확인", "헬퍼비, 원본·수정본 비용, 얼리스타트, 드레스 피팅비 등.", "add"],
+    ["sdm-5", "웨딩 촬영 일정 잡기", "", "add"],
+    ["sdm-6", "혼주 한복 · 혼주 메이크업 예약", "", "add"],
+  ]},
+  { id: "trip", title: "신혼여행", when: "예식 8~3개월 전", items: [
+    ["trip-1", "여행 목적을 하나로 합의: 액티브냐, 힐링이냐", "이것만 맞추면 나머지 결정은 쉬워요.", "tip", 3],
+    ["trip-2", "항공권 · 숙소 예약", "예식 다음 날 출발이면 체력을 고려해 오후 비행기가 편해요.", "add"],
+    ["trip-3", "여권 유효기간(6개월 이상) · 영문 이름 일치 확인", "", "add"],
+    ["trip-4", "여행자 보험 가입 · 환전 · 유심/eSIM 준비", "", "add"],
+    ["trip-5", "출발 전 유튜브 보고 카메라 설정 익혀 두기", "인물, 풍경, 접사 모드별로 미리 연습.", "tip", 5],
+  ]},
+  { id: "home", title: "신혼집 · 혼수 · 예물", when: "예식 6~2개월 전", items: [
+    ["home-1", "신혼집 계약 · 입주일 확정", "전세라면 확정일자, 전세보증보험까지.", "add"],
+    ["home-2", "혼수 · 가전 리스트와 구매 시기 정하기", "", "add"],
+    ["home-3", "예단 · 예물 범위 양가와 합의", "", "add"],
+  ]},
+  { id: "guest", title: "청첩장 · 하객", when: "예식 3~1개월 전", items: [
+    ["guest-1", "청첩장에는 큰돈 쓰지 않기", "특이하고 예쁜 건 내 눈에만 그래요.", "tip", 9],
+    ["guest-2", "하객 명단 정리 · 예상 인원 산정", "", "add"],
+    ["guest-3", "모바일 청첩장 제작 (지도, 주차, 계좌번호)", "", "add"],
+    ["guest-4", "청첩장 모임 · 발송 일정 잡기", "예식 6~8주 전 발송이 일반적이에요.", "add"],
+  ]},
+  { id: "body", title: "몸과 컨디션", when: "예식 3개월 전부터", items: [
+    ["body-1", "피부관리는 몰라도 뱃살 관리는 꼭", "", "tip", 21],
+    ["body-2", "예식 2~3주 전에는 새 시술 · 새 화장품 피하기", "트러블이 생겨도 회복할 시간이 부족해요.", "add"],
+    ["body-3", "드레스 · 예복 최종 가봉", "", "add"],
+  ]},
+  { id: "day", title: "본식 준비 · 당일", when: "예식 1개월 전 ~ 당일", items: [
+    ["day-1", "사회자 · 축가 · 식순 · 성혼선언문 확정", "", "add"],
+    ["day-2", "본식 스냅 · 영상 촬영 확정", "", "add"],
+    ["day-3", "웨딩홀에 최종 보증인원 통보 · 식권 수량 확인", "", "add"],
+    ["day-4", "축의금 접수는 믿을 수 있고 경험 있는 사람에게 부탁", "", "tip", 12],
+    ["day-5", "답례품 · 부케 받을 사람 정하기", "", "add"],
+    ["day-6", "잔금 정산 담당자와 결제 수단 정하기", "", "add"],
+    ["day-7", "하객 맞이할 때 장갑 끼기", "하객이 많으면 맨손 악수로 손바닥이 쓸려요.", "tip", 11],
+    ["day-8", "당일 비상 키트 챙기기", "밴드, 옷핀, 상비약, 보조배터리, 물, 간단한 간식.", "add"],
+    ["day-9", "버진로드 입장할 때 무난하게 웃되 너무 많이 웃진 않기", "그래야 사진에서 신부가 신랑을 더 좋아해 결혼한 느낌이 나요.", "tip", 18],
+    ["day-10", "사진 촬영 때 키스는 적당히", "뒷줄 하객들이 민망해해요.", "tip", 20],
+  ]},
+  { id: "after", title: "결혼 후", when: "신혼여행 ~ 신혼 1~2년", items: [
+    ["after-1", "신혼여행지 도착하면 양가 부모님께 직접 전화드리기", "선배 팁은 장인어른·장모님께 꼭. 양가 모두 챙기면 더 좋아요.", "tip", 22],
+    ["after-2", "신혼여행 가서 애매한 쇼핑은 하지 않기", "메모리폼, 달팽이크림, 에메랄드 같은 것들.", "tip", 23],
+    ["after-3", "축의금 장부 정리 · 감사 인사 연락", "", "add"],
+    ["after-4", "혼인신고 · 신혼부부 지원제도 확인", "주택청약, 전세대출, 지자체 지원금 등은 혼인신고 시점에 따라 달라질 수 있어요.", "add"],
+    ["after-5", "자녀 계획은 두 사람이 충분히 이야기하고 정하기", "선배 팁은 신혼 1~2년은 둘이 즐기고 나서.", "tip", 24],
+    ["after-6", "행복하게 살기", "", "tip", 25],
+  ]},
+];
+
+const KEY = "wedding-checklist-v1";
+const UIKEY = "wedding-checklist-ui-v1";
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+let checked = load(KEY, {});
+let ui = load(UIKEY, { filter: "all", closed: {} });
+const list = document.getElementById("list");
+
+function render() {
+  list.innerHTML = "";
+  for (const s of SECTIONS) {
+    const sec = document.createElement("section");
+    sec.className = "sec";
+    sec.dataset.id = s.id;
+    sec.dataset.open = ui.closed[s.id] ? "false" : "true";
+    const head = document.createElement("button");
+    head.className = "sec-head";
+    head.id = "head-" + s.id;
+    head.setAttribute("aria-expanded", sec.dataset.open);
+    head.innerHTML = `<h2>${s.title}<span class="sec-when">${s.when}</span></h2><span class="sec-count"></span><span class="caret" aria-hidden="true"></span>`;
+    head.addEventListener("click", () => {
+      const open = sec.dataset.open !== "true";
+      sec.dataset.open = String(open);
+      head.setAttribute("aria-expanded", String(open));
+      if (open) delete ui.closed[s.id]; else ui.closed[s.id] = true;
+      save(UIKEY, ui);
+    });
+    const ul = document.createElement("ul");
+    for (const [id, task, note, kind, n] of s.items) {
+      const li = document.createElement("li");
+      li.dataset.kind = kind;
+      const tag = kind === "tip" ? `<span class="tag tip">선배 팁 ${n}</span>` : `<span class="tag add">보완</span>`;
+      li.innerHTML = `<label><input type="checkbox" id="c-${id}"><span class="body"><span class="task">${task}</span>${note ? `<span class="note">${note}</span>` : ""}${tag}</span></label>`;
+      const cb = li.querySelector("input");
+      cb.checked = !!checked[id];
+      cb.addEventListener("change", () => {
+        if (cb.checked) checked[id] = true; else delete checked[id];
+        save(KEY, checked);
+        update();
+      });
+      ul.appendChild(li);
+    }
+    sec.append(head, ul);
+    list.appendChild(sec);
+  }
+  update();
+}
+
+function update() {
+  let total = 0, done = 0;
+  for (const s of SECTIONS) {
+    const d = s.items.filter(i => checked[i[0]]).length;
+    total += s.items.length; done += d;
+    const el = list.querySelector(`[data-id="${s.id}"] .sec-count`);
+    el.textContent = d === s.items.length ? "완료" : `${d} / ${s.items.length}`;
+    el.classList.toggle("complete", d === s.items.length);
+  }
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById("pct").textContent = pct + "%";
+  document.getElementById("cnt").textContent = `${done} / ${total} 완료`;
+  document.getElementById("bar").style.width = pct + "%";
+  applyFilter();
+}
+
+function applyFilter() {
+  for (const b of document.querySelectorAll("[data-filter]")) b.setAttribute("aria-pressed", String(b.dataset.filter === ui.filter));
+  for (const sec of list.children) {
+    let visible = 0;
+    for (const li of sec.querySelectorAll("li")) {
+      const isDone = li.querySelector("input").checked;
+      const hide = (ui.filter === "todo" && isDone) || (ui.filter === "tip" && li.dataset.kind !== "tip");
+      li.classList.toggle("hidden", hide);
+      if (!hide) visible++;
+    }
+    sec.hidden = visible === 0;
+  }
+}
+
+document.querySelectorAll("[data-filter]").forEach(b => b.addEventListener("click", () => {
+  ui.filter = b.dataset.filter; save(UIKEY, ui); applyFilter();
+}));
+
+const tools = document.getElementById("tools");
+const resetBtn = document.getElementById("reset");
+resetBtn.addEventListener("click", () => {
+  resetBtn.hidden = true;
+  const box = document.createElement("span");
+  box.className = "confirm";
+  box.innerHTML = `모든 체크를 지울까요? <button class="chip-btn danger" id="reset-yes">지우기</button><button class="chip-btn" id="reset-no">취소</button>`;
+  tools.appendChild(box);
+  const close = () => { box.remove(); resetBtn.hidden = false; resetBtn.focus(); };
+  box.querySelector("#reset-yes").addEventListener("click", () => { checked = {}; save(KEY, checked); close(); render(); });
+  box.querySelector("#reset-no").addEventListener("click", close);
+  box.querySelector("#reset-no").focus();
+});
+
+render();
+</script>
